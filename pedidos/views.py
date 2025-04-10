@@ -143,58 +143,58 @@ def v_crear_pedido(request):
 
     return render(request, 'areaMeseroCrearPedido.html', {'form': form, 'formset': formset, 'categorias': categorias})
 
-# Vista para editar un pedido existente
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import PEDIDO, DETALLE_PEDIDO, USUARIO
+from .forms import PedidoForm, DetallePedidoForm
+
 @login_required
-def v_editar_pedido(request, pedido_id):
-    if request.user.usuario.rol != 1:
-        return redirect('pedidos:login')
+def v_editar_pedido(request, id_pedido):
+    # Verificar si el usuario ha iniciado sesión
+    if not request.user.is_authenticated:
+        return redirect('login')  # Redirigir a la página de login si no está autenticado
 
-    pedido = get_object_or_404(PEDIDO, id=pedido_id)
+    # Verificar si el usuario tiene rol de MESERO (rol = 1)
+    usuario = request.user.usuario
+    if usuario.rol != 1:  # Solo los meseros pueden editar pedidos
+        return redirect('login')  # Redirigir a la página de login si no tiene el rol adecuado
 
-    DetalleFormSet = modelformset_factory(DETALLE_PEDIDO, form=DetallePedidoForm, extra=0, can_delete=True)
+    # Buscar el pedido que se quiere editar
+    pedido = get_object_or_404(PEDIDO, idPedido=id_pedido)
 
+    # Preparar los formularios para mostrar la información del pedido y sus productos
     if request.method == 'POST':
-        form = PedidoForm(request.POST, instance=pedido)
-        formset = DetalleFormSet(request.POST, queryset=DETALLE_PEDIDO.objects.filter(pedido=pedido))
+        form_pedido = PedidoForm(request.POST, instance=pedido)
+        form_detalle = DetallePedidoForm(request.POST)
+        
+        if form_pedido.is_valid() and form_detalle.is_valid():
+            # Procesar los datos del pedido
+            pedido.nota_cocina = form_pedido.cleaned_data['nota_cocina']
+            pedido.save()
 
-        if form.is_valid() and formset.is_valid():
-            form.save()
+            # Procesar los detalles del pedido
+            for detalle_data in request.POST.getlist('detalle'):
+                detalle = DETALLE_PEDIDO.objects.get(idDetallePedido=detalle_data['id'])
+                detalle.cantidad = detalle_data['cantidad']
+                detalle.save()
 
-            detalles_guardados = formset.save(commit=False)
-            for detalle in detalles_guardados:
-                producto_id = request.POST.get(f'form-{detalle.id}-producto')  
-                if producto_id:
-                    try:
-                        producto = PRODUCTOS.objects.get(pk=producto_id)
-                        detalle.nombre_producto = producto.nombre
-                        detalle.precio_unitario = producto.precio
-                        detalle.pedido = pedido
-                        detalle.save()
-                    except PRODUCTOS.DoesNotExist:
-                        continue
-
-            # Eliminar los marcados para borrar
-            for detalle in formset.deleted_objects:
-                detalle.delete()
-
-            messages.success(request, 'Pedido actualizado exitosamente.')
-            return redirect('pedidos:ver_pedido', pedido_id=pedido.id)  
-
+            # Mensaje de éxito
+            messages.success(request, "Pedido actualizado exitosamente.")
+            return redirect('ver_pedido', id_pedido=pedido.idPedido)  # Redirigir a la vista de detalles del pedido
         else:
-            messages.error(request, 'Hubo un error al actualizar el pedido. Revisa los campos.')
-
+            messages.error(request, "Hubo un error al actualizar el pedido.")
     else:
-        form = PedidoForm(instance=pedido)
-        formset = DetalleFormSet(queryset=DETALLE_PEDIDO.objects.filter(pedido=pedido))
+        form_pedido = PedidoForm(instance=pedido)
+        form_detalle = DetallePedidoForm()
 
     return render(request, 'areaMeseroEditarPedido.html', {
-        'form': form,
-        'formset': formset,
-        'categorias': PRODUCTOS.CATEGORIA,
-        'pedido': pedido
+        'form_pedido': form_pedido,
+        'form_detalle': form_detalle,
+        'pedido': pedido,
     })
- 
- 
+
+
+
 # Vista para eliminar un pedido
 @login_required
 def v_eliminar_pedido(request, id_pedido):

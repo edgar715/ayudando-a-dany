@@ -1,110 +1,109 @@
 {% extends 'plantilla.html' %}
-{% load filtros %}
+{% load static %}  <!-- Cargar la etiqueta estática correctamente -->
 
 {% block title %}Editar Pedido{% endblock %}
 
 {% block head %}
-    <link rel="shotcut icon" href="https://cdn-icons-png.flaticon.com/512/1205/1205767.png">
+    <link rel="shortcut icon" href="https://cdn-icons-png.flaticon.com/512/1205/1205767.png">
 {% endblock %}
 
 {% block body %}  
-<link rel="stylesheet" href="{% static 'pedidos/css/formularios.css' %}">
+    <link rel="stylesheet" href="{% static 'pedidos/css/formularios.css' %}">
 
-<div class="container">
-    <div class="row justify-content-center">
-        <div class="col-md-8">
-            <br>
-            <div class="card mt-3">
-                <div class="card-header text-center">
-                    <h4><i class="fa-solid fa-file-pen" style="color: #ffffff;"></i>&nbsp; Modificar Pedido</h4>
-                </div>
-                <div class="card-body">
-                    <form method="POST" action="{% url 'pedidos:editar_pedido' %}" id="pedidoForm">
-                        {% csrf_token %}
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <br>
+                <div class="card mt-3">
+                    <div class="card-header text-center">
+                        <h4><i class="fa-solid fa-file-pen" style="color: #ffffff;"></i>&nbsp; Modificar Pedido</h4>
+                    </div>
+                    <div class="card-body">
+                        <form method="POST" action="{% url 'pedidos:editar_pedido' id_pedido=pedido.idPedido %}" id="pedidoForm">
+                            {% csrf_token %}
 
-                        <div class="mb-3">
-                            <label for="id_nota_cocina" class="form-label">Notas para la Cocina</label>
-                            {{ form.nota_cocina }}
-                        </div>
+                            <div class="mb-3">
+                                <label for="id_nota_cocina" class="form-label">Notas para la Cocina</label>
+                                {{ form.nota_cocina }}
+                            </div>
 
-                        <hr>
+                            <hr>
 
-                        <!-- Campos dinámicos para platillos -->
-                        <div id="formset-container">
-                            {{ formset.management_form }}
-                            {% for form in formset %}
-                            <div class="formset-form mb-3">
-                                <div class="row">
-                                    <div class="col-md-4">
-                                        <label class="form-label">Categoría</label>
-                                        <select class="form-select categoriaSelect" style="height: 50px;" required>
-                                            <option value="" disabled>Seleccione</option>
-                                            {% for id, nombre in categorias %}
-                                                <option value="{{ id }}" {% if form.instance.nombre_producto and form.instance.nombre_producto.categoria == id %}selected{% endif %}>{{ nombre }}</option>
-                                            {% endfor %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-4">
-                                        <label class="form-label">Producto</label>
-                                        <select class="form-select productoSelect" name="{{ form.prefix }}-producto" style="height: 50px;" required>
-                                            {% if form.instance.nombre_producto %}
-                                                <option value="{{ form.instance.nombre_producto.id }}" selected>{{ form.instance.nombre_producto.nombre }}</option>
-                                            {% else %}
-                                                <option value="" disabled selected>Seleccione una categoría</option>
-                                            {% endif %}
-                                        </select>
-                                    </div>
-                                    <div class="col-md-2">
-                                        <label class="form-label">Cantidad</label>
-                                        {{ form.cantidad }}
-                                    </div>
-                                    <div class="col-md-2 d-flex align-items-center">
-                                        <div class="d-flex gap-2 w-100 justify-content-center" style="margin-top: 7px;">
-                                            <button type="button" class="btn btn-success add-form mt-4"><i class="fa-solid fa-plus"></i></button>
-                                            <button type="button" class="btn btn-danger btn-remove mt-4"><i class="fa-solid fa-trash"></i></button>
+                            <!-- Campos dinámicos para platillos -->
+                            <div id="formset-container">
+                                {{ formset.management_form }}
+                                {% for form in formset %}
+                                <div class="formset-form mb-3">
+                                    <div class="row">
+                                        <div class="col-md-4">
+                                            <label class="form-label">Categoría</label>
+                                            <select class="form-select categoriaSelect" style="height: 50px;" required>
+                                                <option value="" disabled>Seleccione</option>
+                                                {% for id, nombre in categorias %}
+                                                    <option value="{{ id }}" {% if form.instance.nombre_producto and form.instance.nombre_producto.categoria == id %}selected{% endif %}>{{ nombre }}</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-4">
+                                            <label class="form-label">Producto</label>
+                                            <select class="form-select productoSelect" name="{{ form.prefix }}-producto" style="height: 50px;" required>
+                                                {% if form.instance.nombre_producto %}
+                                                    <option value="{{ form.instance.nombre_producto.id }}" selected>{{ form.instance.nombre_producto.nombre }}</option>
+                                                {% else %}
+                                                    <option value="" disabled selected>Seleccione una categoría</option>
+                                                {% endif %}
+                                            </select>
+                                        </div>
+                                        <div class="col-md-2">
+                                            <label class="form-label">Cantidad</label>
+                                            {{ form.cantidad }}
+                                        </div>
+                                        <div class="col-md-2 d-flex align-items-center">
+                                            <div class="d-flex gap-2 w-100 justify-content-center" style="margin-top: 7px;">
+                                                <button type="button" class="btn btn-success add-form mt-4"><i class="fa-solid fa-plus"></i></button>
+                                                <button type="button" class="btn btn-danger btn-remove mt-4"><i class="fa-solid fa-trash"></i></button>
+                                            </div>
                                         </div>
                                     </div>
+                                    <!-- Campo oculto DELETE si se puede eliminar -->
+                                    {% if form.can_delete %}
+                                        {{ form.DELETE }}
+                                    {% endif %}
                                 </div>
-                                <!-- Campo oculto DELETE si se puede eliminar -->
-                                {% if form.can_delete %}
-                                    {{ form.DELETE }}
-                                {% endif %}
+                                {% endfor %}
                             </div>
-                            {% endfor %}
-                        </div>
 
-                        <button type="submit" class="btn btn-marron w-100 mt-4">Realizar Pedido</button>
-                    </form>
+                            <button type="submit" class="btn btn-marron w-100 mt-4">Realizar Pedido</button>
+                        </form>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-</div>
 
-
-<!-- Modal de confirmación -->
-<div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLongTitle">Pedido Actualizado Exitosamente</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">¡Tu pedido ha sido actualizado exitosamente!</div>
-            <div class="modal-footer">
-                <button type="button" class="btn" data-bs-dismiss="modal">Cerrar</button>
-                <button type="button" class="btn" id="redirectMesero"><a href="{% url 'pedidos:adminMesero' %}">Regresar</a></button>
+    <!-- Modal de confirmación -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog" aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Pedido Actualizado Exitosamente</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">¡Tu pedido ha sido actualizado exitosamente!</div>
+                <div class="modal-footer">
+                    <button type="button" class="btn" data-bs-dismiss="modal">Cerrar</button>
+                    <button type="button" class="btn" id="redirectMesero"><a href="{% url 'pedidos:adminMesero' %}">Regresar</a></button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
-{% if pedido_actualizado %}
-<script type="text/javascript">
-    $(document).ready(function() {
-        $('#exampleModalCenter').modal('show');
-    });
-</script>
-{% endif %}
+    {% if pedido_actualizado %}
+    <script type="text/javascript">
+        $(document).ready(function() {
+            $('#exampleModalCenter').modal('show');
+        });
+    </script>
+    {% endif %}
 
 {% endblock %}

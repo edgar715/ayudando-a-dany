@@ -14,7 +14,7 @@ urlpatterns = [
     path('mesero/eliminar/<int:id_pedido>/', views.v_eliminar_pedido, name='eliminar_pedido'),
     path('mesero/entregado/<int:id_pedido>/', views.v_marcar_entregado, name='marcar_entregado'),
     path('cargar_productos/', views.v_cargar_productos, name='cargar_productos'),
-
+    #
     # Rutas para el de cocina
     path('cocina/', views.v_chef, name='adminCocina'),
     path('cocina/aceptar/<int:id_pedido>/', views.v_aceptar_pedido, name='aceptar_pedido'),
